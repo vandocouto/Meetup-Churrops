@@ -1,0 +1,31 @@
+- name: "Hosts"
+  hosts: all
+  become: yes
+
+  tasks:
+
+   - name: "Traefik | Create directory /docker-compose/"
+     file: path=/docker-compose/traefik state=directory mode=0755
+     when: "'master' in group_names"
+
+   - name: "Traefik | docker-compose.yml"
+     template: src=../templates/traefik-docker-compose.yml dest=/docker-compose/traefik/docker-compose.yml owner=root mode=644 backup=yes
+     when: "'master' in group_names"
+
+   - name: "Traefik | Deploy container"
+     shell: docker stack deploy --compose-file /docker-compose/traefik/docker-compose.yml up
+     when: "'master' in group_names"
+     tags: compose-traefik
+
+   - name: "Test | Create directory /docker-compose/"
+     file: path=/docker-compose/test state=directory mode=0755
+     when: "'master' in group_names"
+
+   - name: "Test | docker-compose.yml"
+     template: src=../templates/test-docker-compose.yml dest=/docker-compose/test/docker-compose.yml owner=root mode=644 backup=yes
+     when: "'master' in group_names"
+
+   - name: "Test | Deploy container"
+     shell: docker stack deploy --compose-file /docker-compose/test/docker-compose.yml up
+     when: "'master' in group_names"
+     tags: compose-test

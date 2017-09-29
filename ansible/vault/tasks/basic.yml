@@ -1,0 +1,41 @@
+- name: "Hosts"
+  hosts: all
+  become: yes
+
+  tasks:
+   - name: "Basic | Add repository golang"
+     apt_repository:
+      repo: 'ppa:longsleep/golang-backports'
+
+   - name: "Basic | apt-get update"
+     apt: update_cache=yes
+
+   - name: "Basic | apt-get install"
+     apt: name={{item}} state=present
+     with_items:
+      - htop
+      - openssl
+      - tree
+      - golang-go
+      - git
+      - gox
+      - unzip
+      - jq
+
+   - name: "Vault | Create directory /docker-compose/vault"
+     file: path=/docker-compose/vault/{{item}} state=directory mode=0755
+     with_items:
+      - build-vault
+      - confs
+      - ssl
+
+#   - name: "Vault | Git clone vault.git"
+#     git:
+#      repo: https://github.com/hashicorp/vault.git
+#      dest: /docker-compose/vault/vault
+
+   - name: "Vault | Unzip"
+     unarchive:
+      src: https://releases.hashicorp.com/vault/0.8.1/vault_0.8.1_linux_amd64.zip
+      dest: /usr/bin/
+      remote_src: True

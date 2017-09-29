@@ -1,0 +1,112 @@
+version: '3.1'
+services:
+
+  jenkins:
+   image: jenkins:churrops
+   hostname: jenkins
+   container_name: jenkins
+   env_file: './environment.env'
+   privileged: true
+   networks:
+    - churrops
+   volumes:
+    - jenkins:/var/jenkins_home
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /usr/bin/docker:/usr/bin/docker
+    - /etc/hosts:/etc/hosts
+   environment:
+    JAVA_OPTS: "-Djava.awt.headless=true"
+    JAVA_OPTS: "-Duser.timezone='America/Sao_Paulo'"
+   deploy:
+    labels: [JenkinsMaster]
+    mode: replicated
+    replicas: 1
+    update_config:
+     parallelism: 1
+    restart_policy:
+     condition: on-failure
+     delay: 10s
+     max_attempts: 5
+     window: 180s
+   expose:
+    - "8080"
+    - "50000"
+   ports:
+    - "8080:8080"
+    - "50000:50000"
+   secrets:
+    - jenkins-user
+    - jenkins-pass
+   logging:
+    driver: "json-file"
+    options:
+     max-size: "250m"
+     max-file: "3"
+
+  nginx:
+   image: "nginx:1.9"
+   hostname: churrops.com
+   ports:
+     - 443:443
+   links:
+     - registry:registry
+   volumes:
+     - ./nginx/:/etc/nginx/conf.d:ro
+   deploy:
+    labels: [Nginx]
+    mode: replicated
+    replicas: 1
+    update_config:
+     parallelism: 1
+    restart_policy:
+     condition: on-failure
+     delay: 10s
+     max_attempts: 5
+     window: 180s
+
+  registry:
+   image: registry:2
+   hostname: registry
+   ports:
+     - 127.0.0.1:5000:5000
+   environment:
+     REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
+     REGISTRY_STORAGE_DELETE_ENABLED: "true"
+   volumes:
+    - registry:/data
+
+   deploy:
+    labels: [Registry]
+    mode: replicated
+    replicas: 1
+    update_config:
+     parallelism: 1
+    restart_policy:
+     condition: on-failure
+     delay: 10s
+     max_attempts: 5
+     window: 180s
+
+secrets:
+  jenkins-user:
+    external: true
+  jenkins-pass:
+    external: true
+
+volumes:
+ jenkins:
+  external:
+   name: jenkins
+ registry:
+  external:
+   name: registry
+
+networks:
+ churrops:
+  driver: overlay
+  ipam:
+   config:
+    - subnet: 192.168.0.0/24
+
+
+

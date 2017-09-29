@@ -1,0 +1,43 @@
+- name: "Hosts"
+  hosts: all
+  become: yes
+
+  tasks:
+   - name: "Registry | Generate RSA Key"
+     command: openssl genrsa \
+      -out "/docker-compose/churrops/nginx/key.pem" 2048
+     args:
+      creates: "/docker-compose/churrops/nginx/key.pem"
+
+   - name: "Registry | Generate CSR"
+     command: openssl req \
+      -new \
+      -subj '/C=BR/ST=SP/L=Sao Paulo/O=TGL/CN={{ registry }}'
+      -key "/docker-compose/churrops/nginx/key.pem" \
+      -out "/docker-compose/churrops/nginx/csr.pem"
+     args:
+      creates: "/docker-compose/churrops/nginx/csr.pem"
+
+   - name: "Registry | Generate Self-signed Certificate"
+     command: openssl req \
+      -x509 \
+      -days 1825 \
+      -key "/docker-compose/churrops/nginx/key.pem" \
+      -in "/docker-compose/churrops/nginx/csr.pem" \
+      -out "/docker-compose/churrops/nginx/cert.pem"
+     args:
+      creates: "/docker-compose/churrops/nginx/cert.pem"
+
+   - name: "Registry | Verify certificate crt"
+     shell: openssl x509 -noout -modulus -in /docker-compose/churrops/nginx/cert.pem | openssl md5
+     register: crt
+     tags: check_crt
+   - debug: var=crt.stdout_lines
+     tags: check_crt
+
+   - name: "Registry | Verify certificate key"
+     shell: openssl rsa -noout -modulus -in /docker-compose/churrops/nginx/key.pem| openssl md5
+     register: crt
+     tags: check_key
+   - debug: var=crt.stdout_lines
+     tags: check_key

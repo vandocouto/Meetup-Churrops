@@ -1,0 +1,10 @@
+---
+# tasks file for swarm
+- include: hostname.yml
+  tags: hostname
+- include: docker.yml
+  tags: docker
+- include: swarm.yml
+  tags: swarm
+- include: traefik.yml
+  tags: traefik

@@ -1,0 +1,23 @@
+- name: "Hosts"
+  hosts: all
+  become: yes
+
+  tasks:
+
+   - name: "Basic | apt-get update"
+     apt: update_cache=yes
+
+   - name: "Basic | apt-get install"
+     apt: name={{item}} state=present
+     with_items:
+      - htop
+      - tree
+      - git
+      - unzip
+      - jq
+
+   - name: "Churrops | Create directory /docker-compose/"
+     file: path=/docker-compose/{{item}} state=directory mode=0755
+     with_items:
+      - churrops/build
+      - churrops/nginx

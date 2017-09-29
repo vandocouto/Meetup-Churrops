@@ -17,7 +17,7 @@ Para iniciar o projeto é necessário que exportar as seguintes variáveis:
     - diretório: (vpc - ec2-vault - ec2-churrops - ec2-swarm)
     - Comando: (init - plan - apply)
         
-### Create - AWS VPC (Criando a VPC) 
+# Create - AWS VPC (Criando a VPC)
 
 #### Terraform
 
@@ -30,7 +30,7 @@ Create
 
 
 
-#### Launch - ec2-vault (Vault Server)
+# Launch - ec2-vault (Vault Server)
  
 Keys
 
@@ -144,7 +144,7 @@ Vault - Criando o secret jenkinsnode-pass
     
 
 
-#### Launch - ec2-churrops (Jenkins - Registry)
+# Launch - ec2-churrops (Jenkins - Registry)
 
 
 Keys
@@ -182,7 +182,7 @@ Containers: Jenkins - Registry
     export JPASS=$(vault read -tls-skip-verify -format=json secret/jenkins-pass | jq -r .data.value)
     ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i hosts ./tasks/main.yml --extra-vars jenkinspass=$JPASS
 
-#### Launch - ec2-swarm (Cluster Docker Swarm)
+# Launch - ec2-swarm (Cluster Docker Swarm)
 
 
 Voltando dois níveis abaixo:
@@ -210,7 +210,7 @@ ELB
     ./deploy.sh ec2-swarm/elb-swarm/ plan
     ./deploy.sh ec2-swarm/elb-swarm/ apply
   
-# Ansible
+## Ansible
 
 Orquestrando o ambiente do Churrops (jenkins - Registry)
 
@@ -229,7 +229,7 @@ Executando o playbook
     ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i hosts ./tasks/main.yml --extra-vars dockerpass=$REGISTRY
     
 
-# Vault
+## Vault
 
 Carregando a chave swarm.pem (privada)para dentro do Vault Server
  
@@ -240,14 +240,6 @@ Carregando a chave swarm.pem (privada)para dentro do Vault Server
     vault write -tls-skip-verify -format=json ssh/creds/swarm ip=10.0.1.177 ttl=1h | jq -r .data.key > jenkins-vault.pem
     chmod 400 jenkins-vault.pem
     ssh -i jenkins-vault.pem ubuntu@52.207.144.99
-
-
-
-
-
-
-
-
 
 
 

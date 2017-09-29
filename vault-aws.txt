@@ -1,0 +1,31 @@
+#!/bin/bash
+
+AWS
+export VAULT_ADDR='https://vault.churrops.com:8200'
+AWSVAULT=$(vault read -tls-skip-verify aws/creds/awspolicy | grep -i "access_key\|secret_key")
+export AWS_ACCESS_KEY_ID="$(echo $AWSVAULT | awk '{print $2}')"
+export AWS_SECRET_ACCESS_KEY="$(echo $AWSVAULT | awk '{print $4}')"
+export AWS_DEFAULT_REGION="us-east-1"
+
+
+
+ELB
+host traefik-1730491004.us-east-1.elb.amazonaws.com
+
+
+cd ../../ec2-swarm/key-pairs/
+vault write -tls-skip-verify meetup/keys/swarm key=@swarm.pem
+vault write -tls-skip-verify meetup/roles/swarm key_type=dynamic key=swarm admin_user=ubuntu default_user=ubuntu cidr_list=10.0.1.158/32
+vault write -tls-skip-verify -format=json meetup/creds/swarm ip=10.0.1.158 | jq -r .data.key > jenkins-vault.pem
+chmod 400 jenkins-vault.pem
+ssh -i jenkins-vault.pem ubuntu@52.71.253.216
+
+
+
+10.0.1.158
+54.85.83.180
+
+
+
+VAULT SSH
+vault mount -tls-skip-verify -path=meetup ssh

@@ -1,0 +1,13 @@
+---
+# tasks file for vault
+- include: basic.yml
+  tags: basic
+- include: docker-engine.yml
+  tags: docker-engine
+- include: certificate.yml
+  tags: certificate
+- include: build.yml
+  tags: build
+- include: hostname.yml
+  tags: hostname
+

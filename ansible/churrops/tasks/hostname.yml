@@ -1,0 +1,26 @@
+- name: "Hosts"
+  hosts:
+   - all
+  become: yes
+
+  tasks:
+
+   - name: "Docker | Hostname"
+     hostname: name={{ hostname }}
+
+   - name: "Docker | Hosts"
+     lineinfile:
+      dest: /etc/hosts
+      regexp: '^127\.0\.0\.1'
+      line: '127.0.0.1 localhost {{ hostname }}'
+      owner: root
+      group: root
+      mode: 0644
+
+   - name: "Docker | /etc/hosts"
+     lineinfile:
+      dest: /etc/hosts
+      line: '{{item.ip}} {{item.dns}}'
+     with_items:
+      - {ip: "{{ ipvault}}", dns: "{{ vault }}"}
+      - {ip: "{{ lan }}" , dns: "{{ registry }}" }

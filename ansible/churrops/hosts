@@ -1,0 +1,14 @@
+[docker-engine]
+34.200.199.195  hostname=churrops
+[all:vars]
+docker_swarm_port=2377
+ansible_ssh_user=ubuntu
+ansible_ssh_private_key_file=../../ec2-churrops/key-pairs/churrops.pem
+##
+vaultaddr=https://vault.churrops.com:8200
+ipvault=10.0.1.66
+vault=vault.churrops.com
+##
+registry=registry.churrops.com
+jenkinsuser=admin
+lan=10.0.1.174

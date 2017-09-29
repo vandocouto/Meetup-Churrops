@@ -1,0 +1,14 @@
+- name: "Hosts"
+  hosts: all
+  become: yes
+
+  tasks:
+
+   - name: "Docker | swarm create cluster [init]"
+     command: docker swarm init --listen-addr 0.0.0.0:{{ docker_swarm_port }} --advertise-addr {{ ansible_default_ipv4.address }}
+     register: swarm
+     failed_when: "'FAILED' in swarm.stderr"
+     ignore_errors: True
+
+   - debug: msg="{{ swarm.stdout }}"
+

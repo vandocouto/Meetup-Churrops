@@ -1,0 +1,12 @@
+---
+# tasks file for churrops
+- include: basic.yml
+  tags: basic
+- include: hostname.yml
+  tags: hostname
+- include: docker-engine.yml
+- include: swarm.yml
+  tags: swarm
+- include: certificate.yml
+- include: build.yml
+  tags: build

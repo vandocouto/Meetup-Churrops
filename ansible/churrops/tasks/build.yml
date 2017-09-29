@@ -1,0 +1,70 @@
+- name: "Hosts"
+  hosts: all
+  become: yes
+
+  tasks:
+
+   - name: "Churrops | files"
+     template:
+      src: "{{item.src}}"
+      dest: /docker-compose/{{item.dest}}
+      mode: 0644
+     with_items:
+      - {dest: churrops/build,               src: ../files/Dockerfile}
+      - {dest: churrops/build,               src: ../files/91-jenkins}
+      - {dest: churrops/build,               src: ../files/plugins.txt}
+      - {dest: churrops/build,               src: ../files/security.groovy}
+      - {dest: churrops/build,               src: ../files/init.groovy}
+      - {dest: churrops,                     src: ../templates/environment.env}
+      - {dest: churrops/docker-compose.yml,  src: ../templates/docker-compose.yml}
+      - {dest: churrops/nginx,               src: ../templates/registry.conf}
+      - {dest: churrops/nginx,               src: ../files/registry.password}
+     tags: file1
+
+   - name: "Churrops | files - scripts"
+     template:
+      src: "{{item.src}}"
+      dest: /docker-compose/{{item.dest}}
+      mode: 0755
+     with_items:
+      - {dest: churrops/build,         src: ../files/install-plugins.sh}
+      - {dest: churrops/build,         src: ../files/jenkins.sh}
+      - {dest: churrops/build,         src: ../files/jenkins-support}
+      - {dest: churrops/build,         src: ../files/plugins.sh}
+     tags: file2
+
+   - name: "Churrops | Build openjdk"
+     docker_image:
+      name: openjdk
+      tag: 8-jdk
+
+   - name: "Churrops | Build churrops"
+     docker_image:
+      path: /docker-compose/churrops/build
+      dockerfile: Dockerfile
+      name: jenkins
+      tag: churrops
+     tags: build-jenkins
+     async: 120
+     poll: 60
+
+   - name: "Churrops | Docker create volume"
+     shell: |
+      docker volume create --name=churrops
+      docker volume create --name=registry
+
+   - name: "Churrops | Docker secret"
+     shell: |
+      echo {{jenkinsuser}} | docker secret create jenkins-user -
+      echo {{jenkinspass}} | docker secret create jenkins-pass -
+     register: secret
+     failed_when: "'FAILED' in secret.stderr"
+     ignore_errors: True
+
+   - name: "Churrops | Deploy container"
+     shell: |
+      cd /docker-compose/churrops/
+      docker stack deploy --compose-file docker-compose.yml up
+     async: 60
+     poll: 0
+     tags: docker-compose

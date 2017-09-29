@@ -1,0 +1,50 @@
+- name: "Hosts"
+  hosts:
+   - all
+  become: yes
+
+  tasks:
+
+   - name: "Swarm | swarm create cluster [init]"
+     command: docker swarm init --listen-addr 0.0.0.0:{{ docker_swarm_port }} --advertise-addr {{ docker_swarm_addr }}
+     when: "'master' in group_names"
+     register: swarm
+     failed_when: "'FAILED' in swarm.stderr"
+     ignore_errors: yes
+
+   #- debug: var=group_names
+
+   - name: "Swarm | swarm token [manager]"
+     command: docker swarm join-token -q manager
+     register: token
+     delegate_facts: True
+     delegate_to: "{{ groups['master'][0] }}"
+     when: "'manager' in group_names"
+     failed_when: "'FAILED' in token.stderr"
+     ignore_errors: yes
+
+   - name: "Swarm | swarm add in cluster [manager]"
+     command: docker swarm join --token {{ token.stdout }} {{ docker_swarm_addr }}:{{ docker_swarm_port }}
+     when: "'manager' in group_names"
+     register: manager
+     failed_when: "'FAILED' in manager.stderr"
+     ignore_errors: yes
+
+   - name: "Swarm | swarm token [worker]"
+     command: docker swarm join-token -q worker
+     register: token
+     delegate_facts: True
+     delegate_to: "{{ groups['master'][0] }}"
+     when: "'worker' in group_names"
+     failed_when: "'FAILED' in token.stderr"
+     ignore_errors: yes
+
+   - name: "Swarm | swarm add in [worker]"
+     command: docker swarm join --token {{ token.stdout }} {{ docker_swarm_addr }}:{{ docker_swarm_port }}
+     when: "'worker' in group_names"
+     register: worker
+     failed_when: "'FAILED' in worker.stderr"
+     ignore_errors: yes
+
+   #- debug: var=token.stdout
+   #  when: "'worker' in group_names"

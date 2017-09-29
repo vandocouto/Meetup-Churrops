@@ -1,0 +1,32 @@
+[docker-engine]
+54.85.83.180  hostname=master1
+52.90.137.244  hostname=master2
+54.85.91.165  hostname=master3
+54.85.164.65  hostname=worker1
+52.201.249.209  hostname=worker2
+34.231.242.101  hostname=worker3
+[master]
+54.85.83.180
+[manager]
+52.90.137.244
+54.85.91.165
+[worker]
+54.85.164.65
+52.201.249.209
+34.231.242.101
+[all:children]
+docker-engine
+master
+manager
+worker
+[all:vars]
+docker_swarm_addr=10.0.1.158
+docker_swarm_port=2377
+jenkinsuser=admin
+ipvault=10.0.1.66
+vault=vault.churrops.com
+ipregistry=10.0.1.174
+registry=registry.churrops.com
+dockerlogin=churrops
+ansible_ssh_user=ubuntu
+ansible_ssh_private_key_file=../../ec2-swarm/key-pairs/swarm.pem

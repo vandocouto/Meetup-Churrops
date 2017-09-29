@@ -1,0 +1,33 @@
+- name: "Hosts"
+  hosts: all
+  become: yes
+
+  tasks:
+   - name: "Vault | files"
+     template:
+      src: "{{item.src}}"
+      dest: /docker-compose/{{item.dest}}
+      mode: 0644
+     with_items:
+      - {dest: vault/build-vault,         src: ../files/Dockerfile}
+      - {dest: vault/build-vault,         src: ../files/config.hcl}
+      - {dest: vault/build-vault,         src: ../files/awspolicy.json}
+      - {dest: vault/docker-compose.yml,  src: ../templates/docker-compose.yml}
+     tags: file
+
+   - name: "Vault | Build vault:tgl"
+     docker_image:
+      path: /docker-compose/vault/build-vault
+      dockerfile: Dockerfile
+      name: vault
+      tag: tgl
+     tags: build-vault
+
+   - name: "Vault | Docker create volume"
+     command: docker volume create --name=mysql
+
+   - name: "Vault | Deploy container"
+     command: docker-compose -f /docker-compose/vault/docker-compose.yml up -d
+     #async: 60
+     poll: 60
+     tags: docker-compose

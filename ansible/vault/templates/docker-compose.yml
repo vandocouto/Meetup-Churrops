@@ -1,0 +1,32 @@
+version: '2'
+
+services:
+
+ db:
+  container_name: db
+  image: mysql:5.7
+  volumes:
+   - mysql:/var/lib/mysql
+  restart: always
+  environment:
+   MYSQL_ROOT_PASSWORD: vault
+
+ vault:
+  container_name: vault
+  command: "vault server -config=/vault/config/config.hcl"
+  container_name: vault
+  image: vault:tgl
+  ports:
+   - "8200:8200"
+  cap_add:
+   - IPC_LOCK
+  depends_on:
+   - db
+  links:
+   - "db"
+  restart: always
+
+volumes:
+ mysql:
+  external:
+   name: mysql
